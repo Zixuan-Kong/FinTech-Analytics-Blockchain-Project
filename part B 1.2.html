@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Wallet</title>
+
+    <!-- Include necessary libraries -->
+    <script type="text/javascript" src="https://unpkg.com/bsv@1.5.3/bsv.min.js"></script>
+    <script type="text/javascript" src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Wallet</h1>
+
+        <!-- Display wallet information -->
+        <div id="wallet-info">
+            <p><strong>Private Key:</strong> <span id="privateKey">Not generated yet</span></p>
+            <p><strong>Public Key:</strong> <span id="publicKey">Not generated yet</span></p>
+            <p><strong>Address:</strong> <span id="address">Not generated yet</span></p>
+        </div>
+
+        <!-- Display QR code -->
+        <div id="qr-code-section">
+            <h2>QR Code:</h2>
+            <div id="qrcode"></div>
+        </div>
+
+        <!-- Display Bitcoin price -->
+        <div id="crypto-price">
+            <p><strong>Bitcoin Price:</strong> <span id="btcPrice">Loading...</span></p>
+        </div>
+    </div>
+
+    <script>
+        // Generate wallet and display information automatically on page load
+        window.onload = function() {
+            generateWallet();
+            fetchBitcoinPrice();
+        };
+
+        function generateWallet() {
+            // Generate random private key
+            const privateKey = bsv.PrivateKey.fromRandom();
+            const publicKey = privateKey.publicKey.toString();
+            const address = bsv.Address.fromPrivateKey(privateKey).toString();
+
+            // Display private key, public key, and address
+            document.getElementById("privateKey").textContent = "Private key generated (hidden)";
+            document.getElementById("publicKey").textContent = publicKey;
+            document.getElementById("address").textContent = address;
+
+            // Clear and generate a new QR code
+            const qrCodeElement = document.getElementById("qrcode");
+            qrCodeElement.innerHTML = ""; // Clear previous QR code
+            const addressCode = 'bitcoinsv:' + address; // Bitcoin SV address encoding
+            new QRCode(qrCodeElement, {
+                text: addressCode, // QR code content
+                width: 128, // QR code width
+                height: 128, // QR code height
+            });
+        }
+
+        // Fetch Bitcoin price from CoinGecko API
+        function fetchBitcoinPrice() {
+            fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd')
+                .then(response => response.json())
+                .then(data => {
+                    const price = data.bitcoin.usd;
+                    document.getElementById("btcPrice").textContent = `$${price}`;
+                })
+                .catch(error => {
+                    console.error('Error fetching Bitcoin price:', error);
+                    document.getElementById("btcPrice").textContent = 'Please wait a moment to refresh';
+                });
+        }
+    </script>
+</body>
+</html>
